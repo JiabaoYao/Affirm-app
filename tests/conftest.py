@@ -11,7 +11,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
-from app.services.plans import ensure_plan_offers
+from app.services.decisioning import ensure_risk_tiers
 
 
 @pytest.fixture()
@@ -21,7 +21,7 @@ def session_factory():
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     with factory() as db:
-        ensure_plan_offers(db)
+        ensure_risk_tiers(db)
         db.commit()
     yield factory
     engine.dispose()

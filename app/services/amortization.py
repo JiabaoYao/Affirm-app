@@ -16,7 +16,8 @@ def add_months(start: date, months: int, day: int) -> date:
     index = start.month - 1 + months
     return date(start.year + index // 12, index % 12 + 1, day)
 
-
+# @dataclass writes the boilerplate methods for you, based on the annotated fields
+# frozen=True makes instances read-only after creation
 @dataclass(frozen=True)
 class ScheduleRow:
     seq: int
@@ -32,6 +33,7 @@ class Schedule:
     total_interest: Decimal
     rows: list[ScheduleRow]
 
+    # @property makes a method look like an attribute
     @property
     def total_cost(self) -> Decimal:
         return sum((row.amount_due for row in self.rows), Decimal("0.00"))

@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from app.core.deps import CurrentUser, DbSession, TokenPayload
 from app.core.errors import AppError, error_responses, unauthorized
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models import RevokedToken, User, utcnow
+from app.models import MerchantProfile, MerchantStatus, RevokedToken, User, UserRole, utcnow
 from app.schemas.auth import RegisterIn, TokenOut, UserOut
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -24,17 +24,23 @@ def _email_taken() -> AppError:
     status_code=201,
     response_model=UserOut,
     summary="Create an account",
-    description="Creates a consumer or merchant account. (In production, merchants would be onboarded separately.)",
+    description="Creates a consumer or merchant account. A merchant starts as `pending` until an admin approves it. "
+                "Admin accounts are internal and can't be registered here.",
     responses=error_responses(409, 422),
 )
 def register(body: RegisterIn, db: DbSession) -> User:
     email = body.email.lower()
     if db.scalar(select(User.id).where(User.email == email)) is not None:
         raise _email_taken()
-    user = User(email=email, hashed_password=hash_password(body.password), role=body.role, created_at=utcnow())
-    db.add(user)
+    now = utcnow()
+    user = User(email=email, full_name=body.full_name.strip(), hashed_password=hash_password(body.password),
+                role=UserRole(body.role), created_at=now)
+    if user.role == UserRole.merchant:
+        user.merchant_profile = MerchantProfile(business_name=body.business_name.strip(),
+                                                status=MerchantStatus.pending, created_at=now)
+    db.add(user) # only in memory, not yet in database
     try:
-        db.commit()
+        db.commit() # SQLAlchemy autoflushes by default
     except IntegrityError:
         db.rollback()
         raise _email_taken()
@@ -61,7 +67,7 @@ def login(form: Annotated[OAuth2PasswordRequestForm, Depends()], db: DbSession) 
     status_code=204,
     summary="Revoke the current token",
     description="Adds the token's `jti` to the denylist, so it is rejected from now on even before it expires.",
-    responses=error_responses(401),
+    responses=error_responses(401), # 401 TOKEN_REVOKED
 )
 def logout(payload: TokenPayload, db: DbSession) -> Response:
     expires_at = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)

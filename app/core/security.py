@@ -40,9 +40,9 @@ def decode_access_token(token: str) -> dict[str, Any]:
             token,
             settings.jwt_secret,
             algorithms=[settings.jwt_algorithm],
-            options={"require": ["sub", "jti", "exp"]},
+            options={"require": ["sub", "jti", "exp"]}, # reject the token if any of these claims is missing
         )
     except jwt.ExpiredSignatureError:
         raise unauthorized("TOKEN_EXPIRED", "Token has expired. Please log in again.")
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError: # everything else: bad signature, malformed, missing claim, wrong alg
         raise unauthorized("INVALID_TOKEN", "Token is invalid.")

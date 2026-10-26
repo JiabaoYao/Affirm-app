@@ -25,7 +25,7 @@ class ErrorOut(BaseModel):
 
 class AppError(Exception):
     """A business error the client can act on, rendered with a machine-readable `code`."""
-
+    # e.g (409, "PLAN_PAID_OFF", "This plan is already paid off.")
     def __init__(self, status_code: int, code: str, detail: str, headers: dict[str, str] | None = None):
         super().__init__(detail)
         self.status_code = status_code
@@ -88,5 +88,7 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def handle_unexpected(_: Request, exc: Exception) -> JSONResponse:
+        # The client still only sees {"detail": "Something went wrong.", "code": "INTERNAL_ERROR"}. 
+        # The traceback goes to the log
         logger.exception("Unhandled error", exc_info=exc)
         return _error(500, "INTERNAL_ERROR", "Something went wrong.")

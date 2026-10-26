@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 60
     # JSON list in the env file, e.g. CORS_ORIGINS=["http://localhost:5173"]
     cors_origins: list[str] = ["http://localhost:5173"]
+    # "/api" when served behind the Nginx reverse proxy, so Swagger finds /api/openapi.json.
+    root_path: str = ""
 
 
 settings = Settings()

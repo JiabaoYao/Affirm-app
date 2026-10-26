@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 
 from app.core.errors import AppError
-from app.models import InstallmentStatus, PlanOffer, PlanStatus
+from app.models import InstallmentStatus, PlanStatus
 from app.services.payments import apply_payment
 from app.services.plans import build_plan, change_autopay_day
 
@@ -13,8 +13,8 @@ NOW = datetime(2026, 10, 3, 12, tzinfo=timezone.utc)
 
 
 def make_plan(term=12, apr="0.15", principal="1000.00"):
-    offer = PlanOffer(id=1, term_months=term, apr=D(apr), min_amount=D("50.00"))
-    return build_plan(user_id=1, transaction_id=1, offer=offer, principal=D(principal), autopay_day=15, now=NOW)
+    return build_plan(user_id=1, transaction_id=1, program_id=1, term_months=term, apr=D(apr), principal=D(principal),
+                      autopay_day=15, now=NOW)
 
 
 def statuses(plan):
@@ -91,3 +91,12 @@ def test_changing_autopay_on_paid_off_plan_conflicts():
     with pytest.raises(AppError) as exc:
         change_autopay_day(plan, 5)
     assert exc.value.status_code == 409
+
+
+def test_plan_waiting_for_capture_takes_no_payments():
+    plan = make_plan()
+    plan.status = PlanStatus.pending_capture
+
+    with pytest.raises(AppError) as exc:
+        apply_payment(plan, D("10.00"), NOW)
+    assert (exc.value.status_code, exc.value.code) == (409, "PLAN_NOT_ACTIVE")
