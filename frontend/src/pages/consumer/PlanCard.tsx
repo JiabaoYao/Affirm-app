@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import type { PlanSummary } from "../../api/types";
 import { ProgressBar } from "../../components/loan";
 import { StatusBadge } from "../../components/ui";
-import { apr, date, money } from "../../lib/format";
+import { apr, date, item, money } from "../../lib/format";
 
 export default function PlanCard({ plan }: { plan: PlanSummary }) {
   const total = Number(plan.principal) + Number(plan.total_interest);
@@ -11,7 +11,7 @@ export default function PlanCard({ plan }: { plan: PlanSummary }) {
     <Link to={`/app/loans/${plan.id}`} className="card block p-5 transition hover:border-brand-300 hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate font-semibold text-slate-900">{plan.product_name}</p>
+          <p className="truncate font-semibold text-slate-900">{item(plan)}</p>
           <p className="text-sm text-slate-500">{plan.merchant_name}</p>
         </div>
         {plan.days_past_due > 0 ? (

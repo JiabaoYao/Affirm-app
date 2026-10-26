@@ -94,6 +94,8 @@ export interface Transaction {
   merchant_name: string;
   product_id: number;
   product_name: string;
+  quantity: number;
+  /** Total financed: unit price × quantity. */
   amount: Money;
   status: TransactionStatus;
   decision_reason: string | null;
@@ -148,6 +150,7 @@ export interface PlanSummary {
   id: number;
   transaction_id: number;
   product_name: string;
+  quantity: number;
   merchant_name: string;
   term_months: number;
   apr: string;

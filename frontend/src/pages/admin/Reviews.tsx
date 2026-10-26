@@ -5,7 +5,7 @@ import type { Transaction } from "../../api/types";
 import { useAppDispatch } from "../../app/hooks";
 import { EmptyState, ErrorState, Modal, PageHeader, Pagination, Spinner, TableCard } from "../../components/ui";
 import { toastAdded } from "../../features/ui/toastSlice";
-import { dateTime, money } from "../../lib/format";
+import { dateTime, item, money } from "../../lib/format";
 
 const SIZE = 10;
 
@@ -32,7 +32,7 @@ function DecisionModal({ tx, approve, onClose }: { tx: Transaction | null; appro
       {tx && (
         <form onSubmit={submit} className="space-y-4 text-sm">
           <p className="text-slate-600">
-            {tx.customer_name} ({tx.customer_email}) wants {money(tx.amount)} for {tx.product_name} at {tx.merchant_name}. Score {tx.credit_score}, tier{" "}
+            {tx.customer_name} ({tx.customer_email}) wants {money(tx.amount)} for {item(tx)} at {tx.merchant_name}. Score {tx.credit_score}, tier{" "}
             {tx.risk_tier}.
           </p>
           <div>
@@ -94,7 +94,7 @@ export default function Reviews() {
                       <p className="text-xs text-slate-500">{t.customer_email}</p>
                     </td>
                     <td>
-                      {t.product_name}
+                      {item(t)}
                       <p className="text-xs text-slate-500">{t.merchant_name}</p>
                     </td>
                     <td className="text-right font-medium">{money(t.amount)}</td>

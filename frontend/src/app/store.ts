@@ -1,4 +1,5 @@
 import { configureStore, createListenerMiddleware, isRejectedWithValue } from "@reduxjs/toolkit";
+import { setupListeners } from "@reduxjs/toolkit/query";
 
 import { baseApi } from "../api/baseApi";
 import authReducer, { persistAuth } from "../features/auth/authSlice";
@@ -29,6 +30,9 @@ export const store = configureStore({
   },
   middleware: (getDefault) => getDefault().prepend(errorToasts.middleware).concat(baseApi.middleware),
 });
+
+// Enables refetchOnFocus / refetchOnReconnect (window focus and online events).
+setupListeners(store.dispatch);
 
 // Keep the session across reloads.
 let lastAuth = store.getState().auth;

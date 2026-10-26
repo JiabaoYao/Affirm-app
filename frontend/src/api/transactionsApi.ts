@@ -24,7 +24,7 @@ export const transactionsApi = baseApi.injectEndpoints({
       query: (id) => `/transactions/${id}`,
       providesTags: (_r, _e, id) => [{ type: "Transaction", id }],
     }),
-    checkout: build.mutation<Transaction, { product_id: number }>({
+    checkout: build.mutation<Transaction, { product_id: number; quantity: number }>({
       query: (body) => ({ url: "/transactions", method: "POST", body }),
       invalidatesTags: [{ type: "Transaction", id: "LIST" }, "Credit"],
     }),

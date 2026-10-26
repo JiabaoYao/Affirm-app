@@ -9,7 +9,7 @@ import { MethodSelect, methodLabel, ProgressBar, ScheduleTable } from "../../com
 import { Alert, ErrorState, Modal, Spinner, StatCard, StatusBadge, TableCard } from "../../components/ui";
 import { toastAdded } from "../../features/ui/toastSlice";
 import { getErrorMessage, getHttpStatus } from "../../lib/errors";
-import { apr, date, dateTime, money, ordinal } from "../../lib/format";
+import { apr, date, dateTime, item, money, ordinal } from "../../lib/format";
 
 function PaymentModal({ plan, open, onClose }: { plan: PlanDetail; open: boolean; onClose: () => void }) {
   const { data: methods = [] } = usePaymentMethodsQuery();
@@ -218,7 +218,7 @@ export default function LoanDetail() {
           <Link to="/app/loans" className="text-sm font-semibold text-brand-700 hover:underline">
             ← My loans
           </Link>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{plan.product_name}</h1>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{item(plan)}</h1>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
             {plan.merchant_name} · {plan.term_months} months · {apr(plan.apr)} APR
             <StatusBadge status={plan.status} />

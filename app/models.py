@@ -206,6 +206,8 @@ class Transaction(Base):
     consumer_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     merchant_id: Mapped[int] = mapped_column(ForeignKey("merchant_profiles.user_id"), index=True)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    quantity: Mapped[int] = mapped_column(default=1, server_default="1")
+    # Total financed: unit price × quantity, frozen at checkout.
     amount: Mapped[Decimal] = mapped_column(Money)
     status: Mapped[TransactionStatus] = mapped_column(_enum(TransactionStatus))
     credit_check_id: Mapped[int | None] = mapped_column(ForeignKey("credit_checks.id"), nullable=True)
@@ -325,6 +327,10 @@ class Plan(Base):
     @property
     def merchant_name(self) -> str:
         return self.transaction.merchant_name
+
+    @property
+    def quantity(self) -> int:
+        return self.transaction.quantity
 
     @property
     def zero_apr_promo(self) -> bool:

@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
+from sqlalchemy import Engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import settings
@@ -55,10 +55,20 @@ TAGS = [
     {"name": "Health", "description": "Deployment check."},
 ]
 
+def add_missing_columns(bind: Engine) -> None:
+    """Tiny stand-in for a migration tool: create_all makes new tables but never adds columns to
+    existing ones, so columns added after a deploy are added here (Postgres only; idempotent)."""
+    if bind.dialect.name != "postgresql":
+        return
+    with bind.begin() as conn:
+        conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS quantity INTEGER NOT NULL DEFAULT 1"))
+
+
 # lifespan is FastAPI's hook for startup and shutdown logic
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(engine)
+    add_missing_columns(engine)
     with SessionLocal() as db:
         ensure_risk_tiers(db)
         db.commit()

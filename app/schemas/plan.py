@@ -22,6 +22,7 @@ class PlanSummary(ORMModel):
     id: int
     transaction_id: int
     product_name: str
+    quantity: int
     merchant_name: str
     term_months: int
     apr: Decimal

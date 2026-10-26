@@ -66,8 +66,8 @@ def product(client, merchant, name="Laptop", price="1000.00"):
     return r.json()
 
 
-def checkout(client, headers, product_id):
-    r = client.post("/transactions", json={"product_id": product_id}, headers=headers)
+def checkout(client, headers, product_id, quantity=1):
+    r = client.post("/transactions", json={"product_id": product_id, "quantity": quantity}, headers=headers)
     assert r.status_code == 201, r.text
     return r.json()
 
@@ -415,6 +415,26 @@ def test_list_filters_sort_and_pagination(client, session_factory, admin):
 
     bad = client.get("/transactions", params={"size": 500}, headers=alice)
     assert bad.status_code == 422
+
+
+def test_quantity_multiplies_the_financed_amount(client, session_factory, admin):
+    shop = active_merchant(client, admin)
+    tablet = product(client, shop, "Tablet", "450.00")
+    bob = consumer(client, session_factory, "bob@demo.com", 665)  # tier C: $2,500 limit
+
+    tx = checkout(client, bob, tablet["id"], quantity=3)
+    assert (tx["status"], tx["quantity"], tx["amount"]) == ("approved", 3, "1350.00")
+    plan = client.post(f"/transactions/{tx['id']}/plan", json={"term_months": 3, "agree": True}, headers=bob).json()
+    assert (plan["principal"], plan["quantity"]) == ("1350.00", 3)
+    order = client.get(f"/transactions/{tx['id']}", headers=shop).json()
+    assert (order["quantity"], order["merchant_fee"]) == (3, "81.00")  # 3% + 3% promo on $1,350
+
+    # 6 × $450 = $2,700 is over what's left of the $2,500 limit.
+    over = checkout(client, bob, tablet["id"], quantity=6)
+    assert over["status"] == "declined" and "spending power" in over["decision_reason"]
+    for bad in (0, 11):
+        r = client.post("/transactions", json={"product_id": tablet["id"], "quantity": bad}, headers=bob)
+        assert r.status_code == 422
 
 
 def test_seed_is_idempotent(session_factory):

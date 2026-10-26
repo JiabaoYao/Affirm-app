@@ -22,7 +22,7 @@ import {
   termChosen,
 } from "../../features/checkout/checkoutSlice";
 import { toastAdded } from "../../features/ui/toastSlice";
-import { apr, date, money, ordinal } from "../../lib/format";
+import { apr, date, item, money, ordinal } from "../../lib/format";
 
 const STEPS = ["Decision", "Choose plan", "Review & sign", "Done"];
 
@@ -50,8 +50,13 @@ function OrderSummary({ tx }: { tx: Transaction }) {
   return (
     <aside className="card h-fit p-5">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your order</p>
-      <p className="mt-2 font-semibold">{tx.product_name}</p>
+      <p className="mt-2 font-semibold">{item(tx)}</p>
       <p className="text-sm text-slate-500">{tx.merchant_name}</p>
+      {tx.quantity > 1 && (
+        <p className="mt-2 text-sm text-slate-600">
+          {tx.quantity} × {money(Number(tx.amount) / tx.quantity)}
+        </p>
+      )}
       <p className="mt-3 text-2xl font-bold">{money(tx.amount)}</p>
       {tx.credit_score !== null && (
         <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
@@ -111,7 +116,7 @@ function PlanStep({ tx }: { tx: Transaction }) {
   return (
     <div>
       <Alert kind="success">
-        <strong>You're approved!</strong> Choose how you'd like to pay for {tx.product_name}. No fees, and the total is fixed upfront.
+        <strong>You're approved!</strong> Choose how you'd like to pay for {item(tx)}. No fees, and the total is fixed upfront.
       </Alert>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         {data.options.map((o) => (
@@ -250,7 +255,7 @@ function ReviewStep({ tx }: { tx: Transaction }) {
         <h2 className="font-semibold">Loan agreement</h2>
         <div className="max-h-40 overflow-y-auto rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
           <p>
-            You agree to repay {money(tx.amount)} for your {tx.product_name} from {tx.merchant_name} in {option.term_months} monthly payments of about{" "}
+            You agree to repay {money(tx.amount)} for your {item(tx)} from {tx.merchant_name} in {option.term_months} monthly payments of about{" "}
             {money(option.monthly_payment)}, at an annual percentage rate (APR) of {apr(option.apr)}. The total of payments is {money(option.total_cost)},
             including {money(option.total_interest)} of simple interest.
           </p>
@@ -332,7 +337,7 @@ function Outcome({ tx }: { tx: Transaction }) {
         {tx.status === "authorized" ? "You're all set!" : tx.status === "captured" ? "Your order has shipped" : "This order was cancelled"}
       </h2>
       <p className="mt-2 text-sm text-slate-600">
-        {tx.status === "authorized" && `Your plan starts when ${tx.merchant_name} ships your ${tx.product_name}.`}
+        {tx.status === "authorized" && `Your plan starts when ${tx.merchant_name} ships your ${item(tx)}.`}
         {tx.status === "captured" && "Your plan is active."}
         {tx.status === "voided" && "The merchant cancelled the order, so you owe nothing."}
       </p>

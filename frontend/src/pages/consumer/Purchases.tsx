@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useListTransactionsQuery, type TransactionQuery } from "../../api/transactionsApi";
 import type { TransactionStatus } from "../../api/types";
 import { EmptyState, ErrorState, FilterChips, PageHeader, Pagination, Spinner, StatusBadge, TableCard } from "../../components/ui";
-import { date, money } from "../../lib/format";
+import { date, item, money } from "../../lib/format";
 
 type Filter = "all" | "action" | "financed" | "declined";
 const FILTERS: Record<Filter, TransactionStatus[] | undefined> = {
@@ -69,7 +69,7 @@ export default function Purchases() {
                   <tr key={t.id}>
                     <td>{date(t.created_at)}</td>
                     <td>
-                      <p className="font-medium text-slate-900">{t.product_name}</p>
+                      <p className="font-medium text-slate-900">{item(t)}</p>
                       <p className="text-xs text-slate-500">{t.merchant_name}</p>
                     </td>
                     <td className="text-right font-medium">{money(t.amount)}</td>

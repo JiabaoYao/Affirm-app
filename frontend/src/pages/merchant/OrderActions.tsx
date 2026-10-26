@@ -5,7 +5,7 @@ import type { Transaction } from "../../api/types";
 import { useAppDispatch } from "../../app/hooks";
 import { ConfirmDialog, Modal } from "../../components/ui";
 import { toastAdded } from "../../features/ui/toastSlice";
-import { money } from "../../lib/format";
+import { item, money } from "../../lib/format";
 
 /** Capture (ship), void, and tracking for one order. Only authorized/captured orders have actions. */
 export default function OrderActions({ order }: { order: Transaction }) {
@@ -55,7 +55,7 @@ export default function OrderActions({ order }: { order: Transaction }) {
         title="Capture this order?"
         body={
           <>
-            Capture when <strong>{order.product_name}</strong> ships. The shopper's loan becomes active and Affirm pays you{" "}
+            Capture when <strong>{item(order)}</strong> ships. The shopper's loan becomes active and Affirm pays you{" "}
             <strong>{money(net)}</strong> ({money(order.amount)} minus a {money(order.merchant_fee)} fee).
           </>
         }

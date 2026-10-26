@@ -91,7 +91,8 @@ def get_payment_method(db: Session, user_id: int, method_id: int | None) -> Paym
     status_code=201,
     response_model=TransactionOut,
     summary="Check out with Affirm (consumer)",
-    description="Starts a financed purchase of one product. Runs (or reuses) a soft credit check and decides "
+    description="Starts a financed purchase of one product (1-10 units; the amount is unit price × quantity). "
+                "Runs (or reuses) a soft credit check and decides "
                 "right away: `approved` (see /plan-options), `in_review` (an admin decides) or `declined` "
                 "(with `decision_reason`).",
     responses=error_responses(401, 403, 404, 422),
@@ -115,7 +116,8 @@ def create_transaction(body: TransactionCreate, consumer: ConsumerUser, db: DbSe
         merchant=product.merchant,
         consumer=consumer,
         product=product,
-        amount=product.price,
+        quantity=body.quantity,
+        amount=product.price * body.quantity,
         status=TransactionStatus.in_review,
         created_at=now,
     )

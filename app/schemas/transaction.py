@@ -6,11 +6,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models import TransactionStatus
 from app.schemas.common import ORMModel
 
+MAX_QUANTITY = 10
+
 
 class TransactionCreate(BaseModel):
-    model_config = ConfigDict(json_schema_extra={"examples": [{"product_id": 2}]})
+    model_config = ConfigDict(json_schema_extra={"examples": [{"product_id": 2, "quantity": 1}]})
 
     product_id: int = Field(description="Product the consumer is buying with Affirm")
+    quantity: int = Field(default=1, ge=1, le=MAX_QUANTITY, description=f"Units to buy (1-{MAX_QUANTITY})")
 
 
 class TransactionOut(ORMModel):
@@ -22,7 +25,8 @@ class TransactionOut(ORMModel):
     merchant_name: str
     product_id: int
     product_name: str
-    amount: Decimal
+    quantity: int
+    amount: Decimal = Field(description="Total financed: unit price × quantity")
     status: TransactionStatus
     decision_reason: str | None = Field(description="Why it was declined or sent to review. Hidden from merchants.")
     credit_score: int | None = Field(description="Hidden from merchants.")

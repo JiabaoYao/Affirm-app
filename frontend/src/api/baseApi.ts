@@ -59,5 +59,8 @@ export const baseApi = createApi({
     "Delinquency",
     "Audit",
   ],
+  // Coming back to the tab refetches what's on screen, e.g. after acting as another role in another window.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
   endpoints: () => ({}),
 });

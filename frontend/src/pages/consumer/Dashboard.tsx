@@ -5,7 +5,7 @@ import { useListTransactionsQuery } from "../../api/transactionsApi";
 import { useAppSelector } from "../../app/hooks";
 import { Alert, EmptyState, ErrorState, PageHeader, Spinner, StatCard } from "../../components/ui";
 import { selectUser } from "../../features/auth/authSlice";
-import { date, money } from "../../lib/format";
+import { date, item, money } from "../../lib/format";
 import CreditCard from "./CreditCard";
 import PlanCard from "./PlanCard";
 
@@ -64,7 +64,7 @@ export default function ConsumerDashboard() {
             {pending.data!.items.map((t) => (
               <Link key={t.id} to={`/app/checkout/${t.id}`} className="card flex items-center justify-between gap-3 p-4 hover:border-brand-300">
                 <div>
-                  <p className="font-semibold">{t.product_name}</p>
+                  <p className="font-semibold">{item(t)}</p>
                   <p className="text-sm text-slate-500">
                     {t.merchant_name} · {money(t.amount)}
                   </p>

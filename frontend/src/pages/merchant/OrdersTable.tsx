@@ -1,6 +1,6 @@
 import type { Transaction } from "../../api/types";
 import { StatusBadge, TableCard } from "../../components/ui";
-import { date, money } from "../../lib/format";
+import { date, item, money } from "../../lib/format";
 import OrderActions from "./OrderActions";
 
 export default function OrdersTable({ orders }: { orders: Transaction[] }) {
@@ -30,7 +30,7 @@ export default function OrdersTable({ orders }: { orders: Transaction[] }) {
                 <p className="text-xs text-slate-500">{o.customer_email}</p>
               </td>
               <td>
-                {o.product_name}
+                {item(o)}
                 {o.tracking_number && <p className="text-xs text-slate-500">Tracking {o.tracking_number}</p>}
               </td>
               <td className="text-right font-medium">{money(o.amount)}</td>

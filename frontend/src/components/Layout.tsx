@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 
+import { baseApi } from "../api/baseApi";
 import { useNotificationsQuery } from "../api/notificationsApi";
 import type { Role } from "../api/types";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
@@ -48,6 +49,20 @@ function NotificationBell() {
   // Polling keeps the badge fresh: e.g. a shopper sees "order shipped" soon after the merchant captures.
   const { data } = useNotificationsQuery({ size: 1 }, { pollingInterval: 15000 });
   const unread = data?.unread ?? 0;
+  const dispatch = useAppDispatch();
+  // undefined = not loaded yet; null = loaded, the user has no notifications so far.
+  const latestId = useRef<number | null | undefined>(undefined);
+
+  // A new notification means another user changed our data (e.g. the merchant captured our order), and
+  // tag invalidation only covers this browser's own mutations, so refetch what those events touch.
+  useEffect(() => {
+    if (!data) return;
+    const newest = data.items[0]?.id ?? null;
+    if (latestId.current !== undefined && newest !== null && newest !== latestId.current) {
+      dispatch(baseApi.util.invalidateTags(["Plan", "Transaction", "Credit", "MerchantSummary", "Me"]));
+    }
+    latestId.current = newest;
+  }, [data, dispatch]);
   return (
     <Link to="/notifications" className="btn-ghost relative px-2.5" aria-label={`Notifications (${unread} unread)`}>
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">

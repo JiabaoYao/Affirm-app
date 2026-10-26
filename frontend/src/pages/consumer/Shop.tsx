@@ -11,7 +11,27 @@ import CreditCard from "./CreditCard";
 
 const SIZE = 12;
 
-function ProductCard({ product, onBuy, busy }: { product: StoreProduct; onBuy: () => void; busy: boolean }) {
+const MAX_QUANTITY = 10;
+
+function QuantityPicker({ value, onChange, label }: { value: number; onChange: (n: number) => void; label: string }) {
+  return (
+    <div className="flex items-center rounded-full border border-slate-300" role="group" aria-label={`Quantity of ${label}`}>
+      <button type="button" className="h-9 w-9 rounded-full text-lg font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40" onClick={() => onChange(value - 1)} disabled={value <= 1} aria-label="Decrease quantity">
+        −
+      </button>
+      <span className="w-8 text-center text-sm font-semibold tabular-nums" aria-live="polite">
+        {value}
+      </span>
+      <button type="button" className="h-9 w-9 rounded-full text-lg font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40" onClick={() => onChange(value + 1)} disabled={value >= MAX_QUANTITY} aria-label="Increase quantity">
+        +
+      </button>
+    </div>
+  );
+}
+
+function ProductCard({ product, onBuy, busy }: { product: StoreProduct; onBuy: (quantity: number) => void; busy: boolean }) {
+  const [quantity, setQuantity] = useState(1);
+  const total = Number(product.price) * quantity;
   return (
     <div className="card flex flex-col p-5">
       <div className="mb-4 flex h-32 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-4xl font-bold text-slate-400">
@@ -30,8 +50,21 @@ function ProductCard({ product, onBuy, busy }: { product: StoreProduct; onBuy: (
         )}
         {product.has_zero_apr && <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">0% APR option</span>}
       </p>
-      <button className="btn-primary mt-4" onClick={onBuy} disabled={busy || !product.as_low_as_monthly}>
-        {busy ? "Checking…" : "Buy with Affirm"}
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <QuantityPicker value={quantity} onChange={setQuantity} label={product.name} />
+        <p className="text-right text-sm text-slate-600">
+          {quantity > 1 ? (
+            <>
+              Total <strong className="text-slate-900">{money(total)}</strong>
+            </>
+          ) : (
+            "Qty 1"
+          )}
+        </p>
+      </div>
+      {quantity > 1 && <p className="mt-1 text-xs text-slate-500">Your plan options are priced on the total at checkout.</p>}
+      <button className="btn-primary mt-4" onClick={() => onBuy(quantity)} disabled={busy || !product.as_low_as_monthly}>
+        {busy ? "Checking…" : quantity > 1 ? `Buy ${quantity} with Affirm` : "Buy with Affirm"}
       </button>
     </div>
   );
@@ -49,9 +82,9 @@ export default function Shop() {
   const [checkout, { isLoading, originalArgs }] = useCheckoutMutation();
   const navigate = useNavigate();
 
-  async function buy(product: StoreProduct) {
+  async function buy(product: StoreProduct, quantity: number) {
     try {
-      const tx = await checkout({ product_id: product.id }).unwrap();
+      const tx = await checkout({ product_id: product.id, quantity }).unwrap();
       navigate(`/app/checkout/${tx.id}`);
     } catch {
       // toast from the global handler
@@ -107,7 +140,7 @@ export default function Shop() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {products.data!.items.map((p) => (
-              <ProductCard key={p.id} product={p} onBuy={() => buy(p)} busy={isLoading && originalArgs?.product_id === p.id} />
+              <ProductCard key={p.id} product={p} onBuy={(quantity) => buy(p, quantity)} busy={isLoading && originalArgs?.product_id === p.id} />
             ))}
           </div>
           <Pagination page={page} size={SIZE} total={products.data!.total} onPage={setPage} />

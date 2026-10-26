@@ -49,6 +49,11 @@ export function timeAgo(value: string): string {
   return date(value);
 }
 
+/** "Tablet" for one unit, "Tablet × 3" for several. */
+export function item(x: { product_name: string; quantity: number }): string {
+  return x.quantity > 1 ? `${x.product_name} × ${x.quantity}` : x.product_name;
+}
+
 export function titleCase(value: string): string {
   return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
